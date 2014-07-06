@@ -11,6 +11,8 @@
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN, NEO_GRB + NEO_KHZ800);
 
+const uint32_t HANDCLAP_INTERVAL = 300;
+
 uint8_t isBlinking = 0;
 uint8_t ledState = 0;
 uint32_t currentColor = 0;
@@ -56,13 +58,19 @@ void parseMessage(char letter)
 	data = 0;
 	current_token = PARSER_DELAY;
 	break;
+    case 'h': // handclap
+	interval = HANDCLAP_INTERVAL;
+	isBlinking = 1;
+	break;
     case 'j': // blink off 'j'
 	isBlinking = 0;
 	colorAll(currentColor);
+	ledState = 1;
 	break;
     case 'o': // off
 	isBlinking = 0;
 	setColor(0, 0, 0);
+	ledState = 0;
 	break;
     case 'w': // white
 	setColor(255, 255, 255);
