@@ -12,6 +12,7 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN, NEO_GRB + NEO_KHZ800);
 
 uint8_t isBlinking = 0;
+uint8_t ledState = 0;
 uint32_t currentColor = 0;
 uint32_t interval = 500;
 
@@ -20,24 +21,6 @@ void colorAll(uint32_t c) {
 	strip.setPixelColor(i, c);
     }
     strip.show();
-}
-
-void handleMessage(uint8_t cmd, uint32_t delay, uint8_t r, uint8_t g, uint8_t b)
-{
-    currentColor = strip.Color(r, g, b);
-    switch (cmd) {
-    case 'n': // set RGB color immediately
-	isBlinking = 0;
-	colorAll(currentColor);
-	break;
-    case 'b': // blink
-	isBlinking = 1;
-	interval = delay;
-	colorAll(currentColor);
-	break;
-    default:
-	break;
-    }
 }
 
 enum {
@@ -52,24 +35,23 @@ void parseMessage(char letter)
 {
     static uint8_t current_token;
     static uint32_t data;
-    static uint8_t cmd;
-    static uint32_t t;
     static uint8_t r;
     static uint8_t g;
     static uint8_t b;
 
     switch (letter) {
-    case 'n': // set RGB color immediately 'n'r,g,b.
-	cmd = letter;
-	t = data = 0;
+    case 'c': // set RGB color immediately 'c'r,g,b
+	data = 0;
 	r = g = b = 0;
 	current_token = PARSER_RED;
 	break;
-    case 'b': // blink RGB color 'b't,r,g,b.
-	cmd = letter;
-	t = data = 0;
-	r = g = b = 0;
+    case 'b': // blink 'b't
+	interval = data = 0;
 	current_token = PARSER_DELAY;
+	break;
+    case 'o': // blink off 'o'
+	isBlinking = 0;
+	colorAll(currentColor);
 	break;
     case '0':
     case '1':
@@ -91,10 +73,6 @@ void parseMessage(char letter)
 	break;
     case ',':
 	switch (current_token) {
-	case PARSER_DELAY:
-	    t = data;
-	    current_token = PARSER_RED;
-	    break;
 	case PARSER_RED:
 	    r = data;
 	    current_token = PARSER_GREEN;
@@ -103,22 +81,27 @@ void parseMessage(char letter)
 	    g = data;
 	    current_token = PARSER_BLUE;
 	    break;
-	case PARSER_BLUE:
-	    b = data;
-	    current_token = PARSER_END;
-	    break;
 	default:
 	    break;
 	}
 	data = 0;
 	break;
     case '.':
-	if (current_token == PARSER_BLUE) {
-	    b = data;
-	}
-	handleMessage(cmd, t, r, g, b);
-	break;
     default:
+	switch (current_token) {
+	case PARSER_DELAY:
+	    interval = data;
+	    isBlinking = 1;
+	    break;
+	case PARSER_BLUE:
+	    b = data;
+	    currentColor = strip.Color(r, g, b);
+	    colorAll(currentColor);
+	    ledState = 1;
+	    break;
+	default:
+	    break;
+	}
 	break;
     }
 }
@@ -132,7 +115,6 @@ void setup()
 
 static void ledLoop(void)
 {
-    static uint8_t ledState = 0;
     static uint32_t prevms = 0;
     uint32_t now = millis();
     if (isBlinking && now - prevms > interval) {
