@@ -23,6 +23,13 @@ void colorAll(uint32_t c) {
     strip.show();
 }
 
+void setColor(uint8_t r, uint8_t g, uint8_t b)
+{
+    currentColor = strip.Color(r, g, b);
+    colorAll(currentColor);
+    ledState = 1;
+}
+
 enum {
     PARSER_DELAY = 1,
     PARSER_RED,
@@ -40,18 +47,43 @@ void parseMessage(char letter)
     static uint8_t b;
 
     switch (letter) {
-    case 'c': // set RGB color immediately 'c'r,g,b
+    case 'n': // set RGB color immediately 'n'r,g,b
 	data = 0;
 	r = g = b = 0;
 	current_token = PARSER_RED;
 	break;
-    case 'b': // blink 'b't
-	interval = data = 0;
+    case 'i': // blink 'i't
+	data = 0;
 	current_token = PARSER_DELAY;
 	break;
-    case 'o': // blink off 'o'
+    case 'j': // blink off 'j'
 	isBlinking = 0;
 	colorAll(currentColor);
+	break;
+    case 'o': // off
+	isBlinking = 0;
+	setColor(0, 0, 0);
+	break;
+    case 'w': // white
+	setColor(255, 255, 255);
+	break;
+    case 'y': // yellow
+	setColor(255, 255, 0);
+	break;
+    case 'c': // cyan
+	setColor(0, 255, 255);
+	break;
+    case 'm': // magenta
+	setColor(255, 0, 255);
+	break;
+    case 'r': // red
+	setColor(255, 0, 0);
+	break;
+    case 'g': // green
+	setColor(0, 255, 0);
+	break;
+    case 'b': // blue
+	setColor(0, 0, 255);
 	break;
     case '0':
     case '1':
@@ -90,18 +122,21 @@ void parseMessage(char letter)
     default:
 	switch (current_token) {
 	case PARSER_DELAY:
-	    interval = data;
+	    if (data > 0) {
+		interval = data;
+	    }
 	    isBlinking = 1;
 	    break;
 	case PARSER_BLUE:
 	    b = data;
-	    currentColor = strip.Color(r, g, b);
-	    colorAll(currentColor);
-	    ledState = 1;
+	    setColor(r, g, b);
 	    break;
 	default:
 	    break;
 	}
+	current_token = PARSER_END;
+	data = 0;
+	r = g = b = 0;
 	break;
     }
 }
