@@ -1,6 +1,6 @@
 #include <Adafruit_NeoPixel.h>
 
-#define PIN 7
+#define LEDPIN 7
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -9,27 +9,39 @@
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_GRB + NEO_KHZ800);
 
 const uint32_t HANDCLAP_INTERVAL = 300;
 
+uint32_t now;
 uint8_t isBlinking = 0;
 uint8_t ledState = 0;
 uint32_t currentColor = 0;
 uint32_t interval = 500;
+
+// blink LED in a duration after switch pressed
+#define SWPIN 4
+const uint32_t SWEFFECTMS = 3000;
+const int SWON = LOW;
+const int SWOFF = HIGH;
+uint8_t isSwEffect = 0;
+uint32_t swprevms = 0;
+uint32_t prevColor = 0;
+uint8_t prevBlinking = 0;
+uint32_t prevInterval = 0;
 
 void colorAll(uint32_t c) {
     for (uint16_t i = 0; i < strip.numPixels(); i++) {
 	strip.setPixelColor(i, c);
     }
     strip.show();
+    ledState = (c != 0);
 }
 
 void setColor(uint8_t r, uint8_t g, uint8_t b)
 {
     currentColor = strip.Color(r, g, b);
     colorAll(currentColor);
-    ledState = 1;
 }
 
 enum {
@@ -65,12 +77,10 @@ void parseMessage(char letter)
     case 'j': // blink off 'j'
 	isBlinking = 0;
 	colorAll(currentColor);
-	ledState = 1;
 	break;
     case 'o': // off
 	isBlinking = 0;
 	setColor(0, 0, 0);
-	ledState = 0;
 	break;
     case 'w': // white
 	setColor(255, 255, 255);
@@ -154,27 +164,48 @@ void setup()
     Serial.begin(115200);
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
+    pinMode(SWPIN, INPUT_PULLUP);
+    Mouse.begin();
 }
 
 static void ledLoop(void)
 {
     static uint32_t prevms = 0;
-    uint32_t now = millis();
+
+    if (isSwEffect && now - swprevms > SWEFFECTMS) {
+        isBlinking = prevBlinking;
+        currentColor = prevColor;
+        interval = prevInterval;
+        colorAll(currentColor);
+        isSwEffect = 0;
+    }
+
+    // blink LED
     if (isBlinking && now - prevms > interval) {
 	prevms = now;
 	if (ledState == 0) {
 	    colorAll(currentColor);
-	    ledState = 1;
 	} else {
 	    colorAll(0);
-	    ledState = 0;
 	}
     }
 }
 
 void loop()
 {
+    now = millis();
     ledLoop();
+    int val = digitalRead(SWPIN);
+    if (!isSwEffect && val == SWON) {
+        prevColor = currentColor;
+        prevBlinking = isBlinking;
+        prevInterval = interval;
+	interval = HANDCLAP_INTERVAL;
+        isBlinking = 1;
+        setColor(0, 0, 255);
+        swprevms = now;
+        isSwEffect = 1;
+    }
     while (Serial.available()) {
 	char letter = Serial.read();
 	parseMessage(letter);
