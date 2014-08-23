@@ -191,10 +191,24 @@ static void ledLoop(void)
     }
 }
 
+static void mouseLoop()
+{
+    // move mouse to avoid screen saver
+    static uint32_t mprevms = 0;
+    const uint32_t PCLOCKMS = 540000; // 9 [min]
+    if (now - mprevms > PCLOCKMS) {
+	mprevms = now;
+        Mouse.move(1, 0, 0);
+        //Mouse.end();
+        //Serial.write("M");
+    }
+}
+
 void loop()
 {
     now = millis();
     ledLoop();
+    mouseLoop();
     int val = digitalRead(SWPIN);
     if (!isSwEffect && val == SWON) {
         prevColor = currentColor;
