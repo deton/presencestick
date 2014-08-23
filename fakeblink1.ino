@@ -32,7 +32,7 @@ uint32_t prevInterval = 0;
 
 void colorAll(uint32_t c) {
     for (uint16_t i = 0; i < strip.numPixels(); i++) {
-	strip.setPixelColor(i, c);
+        strip.setPixelColor(i, c);
     }
     strip.show();
     ledState = (c != 0);
@@ -62,47 +62,47 @@ void parseMessage(char letter)
 
     switch (letter) {
     case 'n': // set RGB color immediately 'n'r,g,b
-	data = 0;
-	r = g = b = 0;
-	current_token = PARSER_RED;
-	break;
+        data = 0;
+        r = g = b = 0;
+        current_token = PARSER_RED;
+        break;
     case 'i': // blink 'i't
-	data = 0;
-	current_token = PARSER_DELAY;
-	break;
+        data = 0;
+        current_token = PARSER_DELAY;
+        break;
     case 'h': // handclap
-	interval = HANDCLAP_INTERVAL;
-	isBlinking = 1;
-	break;
+        interval = HANDCLAP_INTERVAL;
+        isBlinking = 1;
+        break;
     case 'j': // blink off 'j'
-	isBlinking = 0;
-	colorAll(currentColor);
-	break;
+        isBlinking = 0;
+        colorAll(currentColor);
+        break;
     case 'o': // off
-	isBlinking = 0;
-	setColor(0, 0, 0);
-	break;
+        isBlinking = 0;
+        setColor(0, 0, 0);
+        break;
     case 'w': // white
-	setColor(255, 255, 255);
-	break;
+        setColor(255, 255, 255);
+        break;
     case 'y': // yellow
-	setColor(255, 255, 0);
-	break;
+        setColor(255, 255, 0);
+        break;
     case 'c': // cyan
-	setColor(0, 255, 255);
-	break;
+        setColor(0, 255, 255);
+        break;
     case 'm': // magenta
-	setColor(255, 0, 255);
-	break;
+        setColor(255, 0, 255);
+        break;
     case 'r': // red
-	setColor(255, 0, 0);
-	break;
+        setColor(255, 0, 0);
+        break;
     case 'g': // green
-	setColor(0, 255, 0);
-	break;
+        setColor(0, 255, 0);
+        break;
     case 'b': // blue
-	setColor(0, 0, 255);
-	break;
+        setColor(0, 0, 255);
+        break;
     case '0':
     case '1':
     case '2':
@@ -113,49 +113,49 @@ void parseMessage(char letter)
     case '7':
     case '8':
     case '9':
-	if (current_token == PARSER_RED
-	    || current_token == PARSER_GREEN
-	    || current_token == PARSER_BLUE
-	    || current_token == PARSER_DELAY) {
-	    data *= 10;
-	    data += (letter - '0');
-	}
-	break;
+        if (current_token == PARSER_RED
+                || current_token == PARSER_GREEN
+                || current_token == PARSER_BLUE
+                || current_token == PARSER_DELAY) {
+            data *= 10;
+            data += (letter - '0');
+        }
+        break;
     case ',':
-	switch (current_token) {
-	case PARSER_RED:
-	    r = data;
-	    current_token = PARSER_GREEN;
-	    break;
-	case PARSER_GREEN:
-	    g = data;
-	    current_token = PARSER_BLUE;
-	    break;
-	default:
-	    break;
-	}
-	data = 0;
-	break;
+        switch (current_token) {
+        case PARSER_RED:
+            r = data;
+            current_token = PARSER_GREEN;
+            break;
+        case PARSER_GREEN:
+            g = data;
+            current_token = PARSER_BLUE;
+            break;
+        default:
+            break;
+        }
+        data = 0;
+        break;
     case '.':
     default:
-	switch (current_token) {
-	case PARSER_DELAY:
-	    if (data > 0) {
-		interval = data;
-	    }
-	    isBlinking = 1;
-	    break;
-	case PARSER_BLUE:
-	    b = data;
-	    setColor(r, g, b);
-	    break;
-	default:
-	    break;
-	}
-	current_token = PARSER_END;
-	data = 0;
-	r = g = b = 0;
-	break;
+        switch (current_token) {
+        case PARSER_DELAY:
+            if (data > 0) {
+                interval = data;
+            }
+            isBlinking = 1;
+            break;
+        case PARSER_BLUE:
+            b = data;
+            setColor(r, g, b);
+            break;
+        default:
+            break;
+        }
+        current_token = PARSER_END;
+        data = 0;
+        r = g = b = 0;
+        break;
     }
 }
 
@@ -182,12 +182,12 @@ static void ledLoop(void)
 
     // blink LED
     if (isBlinking && now - prevms > interval) {
-	prevms = now;
-	if (ledState == 0) {
-	    colorAll(currentColor);
-	} else {
-	    colorAll(0);
-	}
+        prevms = now;
+        if (ledState == 0) {
+            colorAll(currentColor);
+        } else {
+            colorAll(0);
+        }
     }
 }
 
@@ -197,7 +197,7 @@ static void mouseLoop()
     static uint32_t mprevms = 0;
     const uint32_t PCLOCKMS = 540000; // 9 [min]
     if (now - mprevms > PCLOCKMS) {
-	mprevms = now;
+        mprevms = now;
         Mouse.move(1, 0, 0);
         //Mouse.end();
         //Serial.write("M");
@@ -214,14 +214,14 @@ void loop()
         prevColor = currentColor;
         prevBlinking = isBlinking;
         prevInterval = interval;
-	interval = HANDCLAP_INTERVAL;
+        interval = HANDCLAP_INTERVAL;
         isBlinking = 1;
         setColor(0, 0, 255);
         swprevms = now;
         isSwEffect = 1;
     }
     while (Serial.available()) {
-	char letter = Serial.read();
-	parseMessage(letter);
+        char letter = Serial.read();
+        parseMessage(letter);
     }
 }
