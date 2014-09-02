@@ -1,4 +1,5 @@
 #include <Adafruit_NeoPixel.h>
+#include <Metro.h>
 
 #define LEDPIN 7
 
@@ -13,22 +14,23 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_GRB + NEO_KHZ800);
 
 const uint32_t HANDCLAP_INTERVAL = 300;
 
+Metro handclapBlink = Metro(HANDCLAP_INTERVAL);
+Metro cmdBlink = Metro(500);
+
 uint32_t now;
 uint8_t isBlinking = 0;
 uint8_t ledState = 0;
 uint32_t currentColor = 0;
-uint32_t interval = 500;
 
 // blink LED in a duration after switch pressed
 #define SWPIN 4
-const uint32_t SWEFFECTMS = 3000;
+const uint32_t HANDCLAPMS = 3000;
 const int SWON = LOW;
 const int SWOFF = HIGH;
-uint8_t isSwEffect = 0;
-uint32_t swprevms = 0;
+uint8_t isHandclap = 0;
+uint32_t handclaptm = 0;
 uint32_t prevColor = 0;
 uint8_t prevBlinking = 0;
-uint32_t prevInterval = 0;
 
 void colorAll(uint32_t c) {
     for (uint16_t i = 0; i < strip.numPixels(); i++) {
@@ -71,8 +73,9 @@ void parseMessage(char letter)
         current_token = PARSER_DELAY;
         break;
     case 'h': // handclap
-        interval = HANDCLAP_INTERVAL;
-        isBlinking = 1;
+        if (!isHandclap) {
+            beginHandclap();
+        }
         break;
     case 'j': // blink off 'j'
         isBlinking = 0;
@@ -141,8 +144,9 @@ void parseMessage(char letter)
         switch (current_token) {
         case PARSER_DELAY:
             if (data > 0) {
-                interval = data;
+                cmdBlink.interval(data);
             }
+            cmdBlink.reset();
             isBlinking = 1;
             break;
         case PARSER_BLUE:
@@ -168,21 +172,46 @@ void setup()
     Mouse.begin();
 }
 
-static void ledLoop(void)
+void beginHandclap(void)
 {
-    static uint32_t prevms = 0;
+    prevColor = currentColor;
+    prevBlinking = isBlinking;
+    setColor(0, 0, 255);
+    handclaptm = now;
+    isHandclap = 1;
+    handclapBlink.reset();
+}
 
-    if (isSwEffect && now - swprevms > SWEFFECTMS) {
-        isBlinking = prevBlinking;
-        currentColor = prevColor;
-        interval = prevInterval;
-        colorAll(currentColor);
-        isSwEffect = 0;
+void endHandclap(void)
+{
+    currentColor = prevColor;
+    isBlinking = prevBlinking;
+    colorAll(currentColor);
+    isHandclap = 0;
+}
+
+void handclapLoop(void)
+{
+    if (now - handclaptm > HANDCLAPMS) {
+        endHandclap();
+        if (isBlinking) {
+            ledBlinkLoop();
+        }
+        return;
     }
+    if (handclapBlink.check()) {
+        if (ledState == 0) {
+            colorAll(currentColor);
+        } else {
+            colorAll(0);
+        }
+    }
+}
 
+static void ledBlinkLoop(void)
+{
     // blink LED
-    if (isBlinking && now - prevms > interval) {
-        prevms = now;
+    if (cmdBlink.check()) {
         if (ledState == 0) {
             colorAll(currentColor);
         } else {
@@ -207,18 +236,15 @@ static void mouseLoop()
 void loop()
 {
     now = millis();
-    ledLoop();
+    if (isHandclap) {
+        handclapLoop();
+    } else if (isBlinking) {
+        ledBlinkLoop();
+    }
     mouseLoop();
     int val = digitalRead(SWPIN);
-    if (!isSwEffect && val == SWON) {
-        prevColor = currentColor;
-        prevBlinking = isBlinking;
-        prevInterval = interval;
-        interval = HANDCLAP_INTERVAL;
-        isBlinking = 1;
-        setColor(0, 0, 255);
-        swprevms = now;
-        isSwEffect = 1;
+    if (!isHandclap && val == SWON) {
+        beginHandclap();
     }
     while (Serial.available()) {
         char letter = Serial.read();
