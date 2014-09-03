@@ -17,20 +17,24 @@ const uint32_t HANDCLAP_INTERVAL = 300;
 Metro handclapBlink = Metro(HANDCLAP_INTERVAL);
 Metro cmdBlink = Metro(500);
 
-uint32_t now;
-uint8_t isBlinking = 0;
+enum mode_t {
+    MODE_NONE,
+    MODE_BLINKING,
+    MODE_HANDCLAP,
+};
+mode_t mode = MODE_NONE;
 uint8_t ledState = 0;
 uint32_t currentColor = 0;
+uint32_t now;
 
 // blink LED in a duration after switch pressed
 #define SWPIN 4
 const uint32_t HANDCLAPMS = 3000;
 const int SWON = LOW;
 const int SWOFF = HIGH;
-uint8_t isHandclap = 0;
 uint32_t handclaptm = 0;
 uint32_t prevColor = 0;
-uint8_t prevBlinking = 0;
+mode_t prevMode = MODE_NONE;
 
 void colorAll(uint32_t c) {
     for (uint16_t i = 0; i < strip.numPixels(); i++) {
@@ -73,16 +77,14 @@ void parseMessage(char letter)
         current_token = PARSER_DELAY;
         break;
     case 'h': // handclap
-        if (!isHandclap) {
-            beginHandclap();
-        }
+        beginHandclap();
         break;
     case 'j': // blink off 'j'
-        isBlinking = 0;
+        mode = MODE_NONE;
         colorAll(currentColor);
         break;
     case 'o': // off
-        isBlinking = 0;
+        mode = MODE_NONE;
         setColor(0, 0, 0);
         break;
     case 'w': // white
@@ -147,7 +149,7 @@ void parseMessage(char letter)
                 cmdBlink.interval(data);
             }
             cmdBlink.reset();
-            isBlinking = 1;
+            mode = MODE_BLINKING;
             break;
         case PARSER_BLUE:
             b = data;
@@ -174,27 +176,28 @@ void setup()
 
 void beginHandclap(void)
 {
-    prevColor = currentColor;
-    prevBlinking = isBlinking;
-    setColor(0, 0, 255);
-    handclaptm = now;
-    isHandclap = 1;
-    handclapBlink.reset();
+    handclaptm = now; // extend handclapLoop()
+    if (mode != MODE_HANDCLAP) {
+        prevMode = mode;
+        mode = MODE_HANDCLAP;
+        handclapBlink.reset();
+        prevColor = currentColor;
+        setColor(0, 0, 255);
+    }
 }
 
 void endHandclap(void)
 {
     currentColor = prevColor;
-    isBlinking = prevBlinking;
+    mode = prevMode;
     colorAll(currentColor);
-    isHandclap = 0;
 }
 
 void handclapLoop(void)
 {
     if (now - handclaptm > HANDCLAPMS) {
         endHandclap();
-        if (isBlinking) {
+        if (mode == MODE_BLINKING) {
             ledBlinkLoop();
         }
         return;
@@ -236,14 +239,20 @@ static void mouseLoop()
 void loop()
 {
     now = millis();
-    if (isHandclap) {
+    switch (mode) {
+    case MODE_HANDCLAP:
         handclapLoop();
-    } else if (isBlinking) {
+        break;
+    case MODE_BLINKING:
         ledBlinkLoop();
+        break;
+    case MODE_NONE:
+    default:
+        break;
     }
     mouseLoop();
     int val = digitalRead(SWPIN);
-    if (!isHandclap && val == SWON) {
+    if (val == SWON) {
         beginHandclap();
     }
     while (Serial.available()) {
