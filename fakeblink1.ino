@@ -15,12 +15,14 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_GRB + NEO_KHZ800);
 const uint32_t HANDCLAP_INTERVAL = 300;
 
 Metro handclapBlink = Metro(HANDCLAP_INTERVAL);
+Metro colorTimerBlink = Metro(3000);
 Metro cmdBlink = Metro(500);
 
 enum mode_t {
     MODE_NONE,
     MODE_BLINKING,
     MODE_HANDCLAP,
+    MODE_COLORTIMER,
 };
 mode_t mode = MODE_NONE;
 uint8_t ledState = 0;
@@ -35,6 +37,12 @@ const int SWOFF = HIGH;
 uint32_t handclaptm = 0;
 uint32_t prevColor = 0;
 mode_t prevMode = MODE_NONE;
+
+// color timer
+uint32_t colortimertm = 0;
+uint8_t colortimerstate = 0;
+const uint32_t COLORTIMERMS_END = 15 * 60 * 1000L; // 15[min] in [ms]
+const uint32_t COLORTIMERMS_RED =  5 * 60 * 1000L;
 
 void colorAll(uint32_t c) {
     for (uint16_t i = 0; i < strip.numPixels(); i++) {
@@ -78,6 +86,9 @@ void parseMessage(char letter)
         break;
     case 'h': // handclap
         beginHandclap();
+        break;
+    case 't': // colortimer
+        beginColorTimer();
         break;
     case 'j': // blink off 'j'
         mode = MODE_NONE;
@@ -211,6 +222,72 @@ void handclapLoop(void)
     }
 }
 
+void beginColorTimer(void)
+{
+    if (mode != MODE_COLORTIMER) {
+        colortimertm = now;
+	colortimerstate = 0;
+        mode = MODE_COLORTIMER;
+        colorTimerBlink.reset();
+        //setColor(255, 255, 0); // yellow
+    }
+}
+
+void colorTimerLoop(void)
+{
+    // on:off = 0ms:1000ms(0:1)@lefttm~END -> 1000ms:0ms(1:0)@lefttm~RED
+    // y=ax+b, 0=900000a+b, 1000=300000a+b -> b=1000-300000a,600000a=-1000
+    // a=-1000/600000,b=1000-300000a
+    static const float A1ON = -1000.0/600000;
+    static const float B1ON = 1000 - 300000 * A1ON;
+    // 1000=900000a+b, 0=300000a+b -> b=-300000a,600000a=1000
+    static const float A1OFF = 1000.0/600000;
+    static const float B1OFF = -300000 * A1OFF;
+    // on:off = 1ms:1000ms@lefttm~RED -> 1000ms:0ms(1:0)@lefttm~0
+    // 1=300000a+b, 1000=0a+b -> b=1000,a=-999/300000
+    static const float A2ON = -999.0/300000;
+    static const float B2ON = 1000;
+    // 1000=300000a+b, 0=0a+b -> b=0,a=1000/300000
+    static const float A2OFF = 1000.0/300000;
+    static const float B2OFF = 0;
+    static uint32_t oncolor, offcolor;
+    static uint32_t oninterval, offinterval;
+    uint32_t spent = now - colortimertm;
+    uint32_t lefttm = COLORTIMERMS_END - spent;
+    if (spent >= COLORTIMERMS_END) { // end color timer mode -> keep red on
+        setColor(255, 0, 0);
+        mode = MODE_NONE;
+        return;
+    } else if (lefttm <= COLORTIMERMS_RED) {
+	colortimerstate = !ledState; // now, yellow indicates 'off'
+        oncolor = strip.Color(255, 0, 0);
+        offcolor = strip.Color(255, 255, 0); // yellow
+        oninterval  = lefttm * A2ON  + B2ON;
+        offinterval = lefttm * A2OFF + B2OFF;
+    } else {
+        oncolor = strip.Color(255, 255, 0); // yellow
+        offcolor = 0;
+        oninterval  = lefttm * A1ON  + B1ON;
+        offinterval = lefttm * A1OFF + B1OFF;
+    }
+    if (colorTimerBlink.check()) {
+        Serial.print(lefttm); // 897000
+        Serial.print(", on ");
+        Serial.print(oninterval);
+        Serial.print(", off ");
+        Serial.println(offinterval);
+        if (colortimerstate == 0) {
+	    colortimerstate = 1;
+            colorAll(oncolor);
+            colorTimerBlink.interval(oninterval);
+        } else {
+	    colortimerstate = 0;
+            colorAll(offcolor);
+            colorTimerBlink.interval(offinterval);
+        }
+    }
+}
+
 static void ledBlinkLoop(void)
 {
     // blink LED
@@ -240,6 +317,9 @@ void loop()
 {
     now = millis();
     switch (mode) {
+    case MODE_COLORTIMER:
+        colorTimerLoop();
+        break;
     case MODE_HANDCLAP:
         handclapLoop();
         break;
