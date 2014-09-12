@@ -226,7 +226,7 @@ void beginColorTimer(void)
 {
     if (mode != MODE_COLORTIMER) {
         colortimertm = now;
-	colortimerstate = 0;
+        colortimerstate = 0;
         mode = MODE_COLORTIMER;
         colorTimerBlink.reset();
         //setColor(255, 255, 0); // yellow
@@ -235,21 +235,27 @@ void beginColorTimer(void)
 
 void colorTimerLoop(void)
 {
-    // on:off = 0ms:1000ms(0:1)@lefttm~END -> 1000ms:0ms(1:0)@lefttm~RED
-    // y=ax+b, 0=900000a+b, 1000=300000a+b -> b=1000-300000a,600000a=-1000
-    // a=-1000/600000,b=1000-300000a
-    static const float A1ON = -1000.0/600000;
-    static const float B1ON = 1000 - 300000 * A1ON;
-    // 1000=900000a+b, 0=300000a+b -> b=-300000a,600000a=1000
-    static const float A1OFF = 1000.0/600000;
-    static const float B1OFF = -300000 * A1OFF;
-    // on:off = 1ms:1000ms@lefttm~RED -> 1000ms:0ms(1:0)@lefttm~0
-    // 1=300000a+b, 1000=0a+b -> b=1000,a=-999/300000
-    static const float A2ON = -999.0/300000;
-    static const float B2ON = 1000;
-    // 1000=300000a+b, 0=0a+b -> b=0,a=1000/300000
-    static const float A2OFF = 1000.0/300000;
-    static const float B2OFF = 0;
+    static const int YELLOW_ON_MS_BEGIN = 2000;
+    static const int YELLOW_OFF_MS_BEGIN = 2000;
+    static const int YELLOW_ON_MS_END = 10;
+    static const int YELLOW_OFF_MS_END = 10;
+    static const int RED_ON_MS_BEGIN = 2000;
+    static const int RED_OFF_MS_BEGIN = 2000;
+    static const int RED_ON_MS_END = 10;
+    static const int RED_OFF_MS_END = 10;
+// y1=ax1+b, y2=ax2+b -> b=y1-ax1=y2-ax2,a=(y1-y2)/(x1-x2)
+#define A(x1,y1,x2,y2) ((float)((y1)-(y2))/((x1)-(x2)))
+#define B(x1,y1,a) ((y1)-(a)*(x1))
+    // on:off = 2000ms:2000ms@lefttm~END -> 10ms:10ms@lefttm~RED
+    static const float A1ON = A(COLORTIMERMS_END,YELLOW_ON_MS_BEGIN,COLORTIMERMS_RED,YELLOW_ON_MS_END);
+    static const float B1ON = B(COLORTIMERMS_END,YELLOW_ON_MS_BEGIN,A1ON);
+    static const float A1OFF = A(COLORTIMERMS_END,YELLOW_OFF_MS_BEGIN,COLORTIMERMS_RED,YELLOW_OFF_MS_END);
+    static const float B1OFF = B(COLORTIMERMS_END,YELLOW_OFF_MS_BEGIN,A1OFF);
+    // on:off = 2000ms:2000ms@lefttm~RED -> 10ms:10ms@lefttm~0
+    static const float A2ON = A(COLORTIMERMS_RED,RED_ON_MS_BEGIN,0,RED_ON_MS_END);
+    static const float B2ON = B(COLORTIMERMS_RED,RED_ON_MS_BEGIN,A2ON);
+    static const float A2OFF = A(COLORTIMERMS_RED,RED_OFF_MS_BEGIN,0,RED_OFF_MS_END);
+    static const float B2OFF = B(COLORTIMERMS_RED,RED_OFF_MS_BEGIN,A2OFF);
     static uint32_t oncolor, offcolor;
     static uint32_t oninterval, offinterval;
     uint32_t spent = now - colortimertm;
@@ -259,7 +265,6 @@ void colorTimerLoop(void)
         mode = MODE_NONE;
         return;
     } else if (lefttm <= COLORTIMERMS_RED) {
-	colortimerstate = !ledState; // now, yellow indicates 'off'
         oncolor = strip.Color(255, 0, 0);
         offcolor = strip.Color(255, 255, 0); // yellow
         oninterval  = lefttm * A2ON  + B2ON;
@@ -271,17 +276,19 @@ void colorTimerLoop(void)
         offinterval = lefttm * A1OFF + B1OFF;
     }
     if (colorTimerBlink.check()) {
-        Serial.print(lefttm); // 897000
+        /*
+        Serial.print(lefttm);
         Serial.print(", on ");
         Serial.print(oninterval);
         Serial.print(", off ");
         Serial.println(offinterval);
+        */
         if (colortimerstate == 0) {
-	    colortimerstate = 1;
+            colortimerstate = 1;
             colorAll(oncolor);
             colorTimerBlink.interval(oninterval);
         } else {
-	    colortimerstate = 0;
+            colortimerstate = 0;
             colorAll(offcolor);
             colorTimerBlink.interval(offinterval);
         }
