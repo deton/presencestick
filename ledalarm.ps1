@@ -16,16 +16,6 @@ $ns = $outlook.GetNameSpace("MAPI");
 $folder = $ns.GetDefaultFolder($olFolderCalendar).Items.Restrict($Filter) 
 $output = ""
 
-$ledsb = {
-  $port = new-Object System.IO.Ports.SerialPort COM3,115200,None,8,one
-  $port.Open()
-  $port.Write("r")
-  start-sleep -m 50
-  $port.Close()
-}
-
-#$credential = new-object -typename System.Management.Automation.PSCredential 
-
 $folder | Sort-Object Start | foreach{
   $teiki_flg = 0 #定期的なアイテムを出力結果に含めるかどうかの判定フラグ
   if( ( $_.RecurrenceState -eq 1) -and ($_.Start.DayOfWeek -eq $date.DayOfWeek) ){#定期的なアイテムであれば、曜日が一致していれば出力結果に含む
@@ -45,21 +35,17 @@ $folder | Sort-Object Start | foreach{
       $output += "--------------------`r`n"
       $output += $_.Subject,"`r`n"
       $output += $start_h+":"+$start_m+"-"+$end_h+":"+$end_m+"`r`n"
-      $starthm = $start_h + ":" + $start_m
-      Start-Process -Verb runas at -ArgumentList $starthm,"powershell c:\tmp\Led.ps1"
-      ##$joboption = New-ScheduledJobOption -HideInTaskScheduler
+      $alarm_h = $start_h
+      $alarm_m = $start_m - 15
+      if ($alarm_m -lt 0) {
+          $alarm_m = 60 + $alarm_m
+          $alarm_h = $start_h - 1
+      }
+      $alarmhm = [string] $alarm_h + ":" + $alarm_m
+      Start-Process -Verb runas at -ArgumentList $alarmhm,"powershell c:\tmp\Led.ps1"
       # XXX: UnauthorizedAccessToRegisterScheduledJobDefinition
       #Register-ScheduledJob -Name LEDAlarm -FilePath "c:\tmp\Led.ps1" -ArgumentList "r" -Trigger $trigger -ScheduledJobOption $joboption
-      #Register-ScheduledJob -Name LEDAlarm -ScriptBlock $ledsb -Trigger $trigger
-      #$cmd = {
-      #    param ($starthm);
-      #    $trigger = New-JobTrigger -Once -At $starthm
-      #    Register-ScheduledJob -Name LEDAlarm -FilePath "c:\tmp\Led.ps1" -Trigger $trigger
-      #}
       #Start-Process PowerShell -Argument "c:\Users\kihara\src\regschjob.ps1 $starthm" -Verb runas
-      #Start-Process PowerShell -ArgumentList @('-noexit', '-command', "$cmd $starthm") -Verb runas
-      #$sc = "-command &{Start-Process PowerShell -ArgumentList {-noexit -command "$cmd $starthm"} -Verb runas }"
-      #Start-Process PowerShell -ArgumentList $sc
       $output += $_.Location,"`r`n"
     }
 } 
