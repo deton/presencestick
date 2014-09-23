@@ -208,9 +208,7 @@ void handclapLoop(void)
 {
     if (now - handclaptm > HANDCLAPMS) {
         endHandclap();
-        if (mode == MODE_BLINKING) {
-            ledBlinkLoop();
-        }
+        ledModeLoop();
         return;
     }
     if (handclapBlink.check()) {
@@ -246,12 +244,12 @@ void colorTimerLoop(void)
 // y1=ax1+b, y2=ax2+b -> b=y1-ax1=y2-ax2,a=(y1-y2)/(x1-x2)
 #define A(x1,y1,x2,y2) ((float)((y1)-(y2))/((x1)-(x2)))
 #define B(x1,y1,a) ((y1)-(a)*(x1))
-    // on:off = 2000ms:2000ms@lefttm~END -> 10ms:10ms@lefttm~RED
+    // on:off = 2000ms:2000ms@(lefttm=END) -> 10ms:10ms@(lefttm=RED)
     static const float A1ON = A(COLORTIMERMS_END,YELLOW_ON_MS_BEGIN,COLORTIMERMS_RED,YELLOW_ON_MS_END);
     static const float B1ON = B(COLORTIMERMS_END,YELLOW_ON_MS_BEGIN,A1ON);
     static const float A1OFF = A(COLORTIMERMS_END,YELLOW_OFF_MS_BEGIN,COLORTIMERMS_RED,YELLOW_OFF_MS_END);
     static const float B1OFF = B(COLORTIMERMS_END,YELLOW_OFF_MS_BEGIN,A1OFF);
-    // on:off = 2000ms:2000ms@lefttm~RED -> 10ms:10ms@lefttm~0
+    // on:off = 2000ms:2000ms@(lefttm=RED) -> 10ms:10ms@(lefttm=0)
     static const float A2ON = A(COLORTIMERMS_RED,RED_ON_MS_BEGIN,0,RED_ON_MS_END);
     static const float B2ON = B(COLORTIMERMS_RED,RED_ON_MS_BEGIN,A2ON);
     static const float A2OFF = A(COLORTIMERMS_RED,RED_OFF_MS_BEGIN,0,RED_OFF_MS_END);
@@ -320,9 +318,8 @@ static void mouseLoop()
     }
 }
 
-void loop()
+void ledModeLoop()
 {
-    now = millis();
     switch (mode) {
     case MODE_COLORTIMER:
         colorTimerLoop();
@@ -337,6 +334,12 @@ void loop()
     default:
         break;
     }
+}
+
+void loop()
+{
+    now = millis();
+    ledModeLoop();
     mouseLoop();
     int val = digitalRead(SWPIN);
     if (val == SWON) {
