@@ -15,14 +15,19 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_GRB + NEO_KHZ800);
 const uint32_t HANDCLAP_INTERVAL = 300;
 
 Metro handclapBlink = Metro(HANDCLAP_INTERVAL);
-Metro colorTimerBlink = Metro(3000);
+Metro colorTimerBlink = Metro(2000);
 Metro cmdBlink = Metro(500);
+// colorTimer満了後、赤点灯状態で、時々赤点滅して注意をうながす
+Metro reminderWait = Metro(4000);
+Metro reminderBlink = Metro(50);
 
 enum mode_t {
     MODE_NONE,
     MODE_BLINKING,
     MODE_HANDCLAP,
     MODE_COLORTIMER,
+    MODE_REMINDERWAIT,
+    MODE_REMINDERBLINK,
 };
 mode_t mode = MODE_NONE;
 uint8_t ledState = 0;
@@ -43,6 +48,10 @@ uint32_t colortimertm = 0;
 uint8_t colortimerstate = 0;
 const uint32_t COLORTIMERMS_END = 15 * 60 * 1000L; // 15[min] in [ms]
 const uint32_t COLORTIMERMS_RED =  5 * 60 * 1000L;
+
+// reminder blink
+const uint32_t REMINDER_DUR = 500;
+uint32_t remindertm = 0;
 
 void colorAll(uint32_t c) {
     for (uint16_t i = 0; i < strip.numPixels(); i++) {
@@ -89,6 +98,9 @@ void parseMessage(char letter)
         break;
     case 't': // colortimer
         beginColorTimer();
+        break;
+    case 'e': // reminder wait
+        beginReminderWait();
         break;
     case 'j': // blink off 'j'
         mode = MODE_NONE;
@@ -260,7 +272,7 @@ void colorTimerLoop(void)
     uint32_t lefttm = COLORTIMERMS_END - spent;
     if (spent >= COLORTIMERMS_END) { // end color timer mode -> keep red on
         setColor(255, 0, 0);
-        mode = MODE_NONE;
+        beginReminderWait();
         return;
     } else if (lefttm <= COLORTIMERMS_RED) {
         oncolor = strip.Color(255, 0, 0);
@@ -291,6 +303,48 @@ void colorTimerLoop(void)
             colorTimerBlink.interval(offinterval);
         }
     }
+}
+
+void beginReminderWait(void)
+{
+    mode = MODE_REMINDERWAIT;
+    reminderWait.reset();
+}
+
+void reminderWaitLoop(void)
+{
+    if (reminderWait.check()) {
+        beginReminderBlink();
+    }
+}
+
+void beginReminderBlink(void)
+{
+    remindertm = now;
+    mode = MODE_REMINDERBLINK;
+    reminderBlink.reset();
+}
+
+void reminderBlinkLoop(void)
+{
+    if (now - remindertm > REMINDER_DUR) {
+        endReminderBlink();
+        ledModeLoop();
+        return;
+    }
+    if (reminderBlink.check()) {
+        if (ledState == 0) {
+            colorAll(currentColor);
+        } else {
+            colorAll(0);
+        }
+    }
+}
+
+void endReminderBlink(void)
+{
+    colorAll(currentColor);
+    beginReminderWait();
 }
 
 static void ledBlinkLoop(void)
@@ -330,6 +384,11 @@ void ledModeLoop()
     case MODE_BLINKING:
         ledBlinkLoop();
         break;
+    case MODE_REMINDERWAIT:
+        reminderWaitLoop();
+        break;
+    case MODE_REMINDERBLINK:
+        reminderBlinkLoop();
     case MODE_NONE:
     default:
         break;
