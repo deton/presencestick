@@ -35,13 +35,16 @@ uint32_t currentColor = 0;
 uint32_t now;
 
 // blink LED in a duration after switch pressed
-#define SWPIN 4
+#define SW1PIN 4
 const uint32_t HANDCLAPMS = 3000;
 const int SWON = LOW;
 const int SWOFF = HIGH;
 uint32_t handclaptm = 0;
 uint32_t prevColor = 0;
 mode_t prevMode = MODE_NONE;
+
+// off switch for color timer
+#define SW2PIN 8
 
 // color timer
 uint32_t colortimertm = 0;
@@ -65,6 +68,12 @@ void setColor(uint8_t r, uint8_t g, uint8_t b)
 {
     currentColor = strip.Color(r, g, b);
     colorAll(currentColor);
+}
+
+void offLed(void)
+{
+    mode = MODE_NONE;
+    setColor(0, 0, 0);
 }
 
 enum {
@@ -107,8 +116,7 @@ void parseMessage(char letter)
         colorAll(currentColor);
         break;
     case 'o': // off
-        mode = MODE_NONE;
-        setColor(0, 0, 0);
+        offLed();
         break;
     case 'w': // white
         setColor(255, 255, 255);
@@ -193,7 +201,8 @@ void setup()
     Serial.begin(115200);
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
-    pinMode(SWPIN, INPUT_PULLUP);
+    pinMode(SW1PIN, INPUT_PULLUP);
+    pinMode(SW2PIN, INPUT_PULLUP);
     Mouse.begin();
 }
 
@@ -400,8 +409,10 @@ void loop()
     now = millis();
     ledModeLoop();
     mouseLoop();
-    int val = digitalRead(SWPIN);
-    if (val == SWON) {
+    if (digitalRead(SW2PIN) == SWON) {
+        offLed();
+    }
+    if (digitalRead(SW1PIN) == SWON) {
         beginHandclap();
     }
     while (Serial.available()) {
