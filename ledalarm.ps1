@@ -1,8 +1,10 @@
 # cf. http://umezy12-techmemo.blogspot.jp/2014/05/powershelloutlook.html
 if($Args[0] -eq $null){#コマンドライン引数が指定が無ければ本日の予定を出力
   $date = Get-Date
+  $enableAlarm = $TRUE
 }else{
   $date = $Args[0] -as [DateTime]
+  $enableAlarm = $FALSE
 }
 
 $Start = $date.AddDays(-1).ToShortDateString()#当日の10：00以前のものは前日分としてRestrictメソッドで処理されている？ようなので前日を開始時刻に設定
@@ -16,6 +18,8 @@ $ns = $outlook.GetNameSpace("MAPI");
 $folder = $ns.GetDefaultFolder($olFolderCalendar).Items.Restrict($Filter) 
 $output = ""
 
+$staticAlarmHms = @("12:05", "17:25") # 固定の休み時間
+$alarmhms = $staticAlarmHms
 $folder | Sort-Object Start | foreach{
   $teiki_flg = 0 #定期的なアイテムを出力結果に含めるかどうかの判定フラグ
   if( ( $_.RecurrenceState -eq 1) -and ($_.Start.DayOfWeek -eq $date.DayOfWeek) ){#定期的なアイテムであれば、曜日が一致していれば出力結果に含む
@@ -42,10 +46,7 @@ $folder | Sort-Object Start | foreach{
           $alarm_h = $start_h - 1
       }
       $alarmhm = [string] $alarm_h + ":" + $alarm_m
-      Start-Process -Verb runas at -ArgumentList $alarmhm,"powershell c:\tmp\Led.ps1"
-      # XXX: UnauthorizedAccessToRegisterScheduledJobDefinition
-      #Register-ScheduledJob -Name LEDAlarm -FilePath "c:\tmp\Led.ps1" -ArgumentList "r" -Trigger $trigger -ScheduledJobOption $joboption
-      #Start-Process PowerShell -Argument "c:\Users\kihara\src\regschjob.ps1 $starthm" -Verb runas
+      $alarmhms += $alarmhm
       $output += $_.Location,"`r`n"
     }
 } 
@@ -53,3 +54,12 @@ $OutputEncoding = [console]::OutputEncoding;
 $output += "--------------------"
 $output
 #$output | clip #出力結果をクリップボードにコピー
+
+# アラーム登録
+if ($enableAlarm) {
+  #Start-Process -Verb runas at -ArgumentList $alarmhm,"powershell c:\tmp\Led.ps1"
+  $arg = $PSScriptRoot + "\regschjob.ps1 $alarmhms"
+  Start-Process PowerShell -Argument $arg -Verb runas
+# XXX: UnauthorizedAccessToRegisterScheduledJobDefinition
+  #Register-ScheduledJob -Name LEDAlarm -FilePath "c:\tmp\Led.ps1" -ArgumentList "e" -Trigger $trigger -ScheduledJobOption $joboption
+}
