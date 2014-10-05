@@ -13,8 +13,10 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_GRB + NEO_KHZ800);
 
 const uint32_t HANDCLAP_INTERVAL = 300;
+const uint8_t RAINBOW_WAIT = 6;
 
 Metro handclapBlink = Metro(HANDCLAP_INTERVAL);
+Metro rainbowWait = Metro(RAINBOW_WAIT);
 Metro colorTimerBlink = Metro(2000);
 Metro cmdBlink = Metro(500);
 // colorTimer満了後、赤点灯状態で、時々赤点滅して注意をうながす
@@ -25,6 +27,7 @@ enum mode_t {
     MODE_NONE,
     MODE_BLINKING,
     MODE_HANDCLAP,
+    MODE_RAINBOW,
     MODE_COLORTIMER,
     MODE_REMINDERWAIT,
     MODE_REMINDERBLINK,
@@ -42,6 +45,8 @@ const int SWOFF = HIGH;
 uint32_t handclaptm = 0;
 uint32_t prevColor = 0;
 mode_t prevMode = MODE_NONE;
+
+uint16_t rainbowidx = 0;
 
 // off switch for color timer
 #define SW2PIN 8
@@ -104,6 +109,9 @@ void parseMessage(char letter)
         break;
     case 'h': // handclap
         beginHandclap();
+        break;
+    case 'a': // rainbow
+        beginRainbow();
         break;
     case 't': // colortimer
         beginColorTimer();
@@ -238,6 +246,36 @@ void handclapLoop(void)
         } else {
             colorAll(0);
         }
+    }
+}
+
+void beginRainbow(void)
+{
+    mode = MODE_RAINBOW;
+    rainbowWait.reset();
+}
+
+// from Adafruit_NeoPixel/examples/strandtest/strandtest.ino
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(byte WheelPos)
+{
+    if (WheelPos < 85) {
+        return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+    } else if (WheelPos < 170) {
+        WheelPos -= 85;
+        return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+    } else {
+        WheelPos -= 170;
+        return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+    }
+}
+
+void rainbowLoop(void)
+{
+    if (rainbowWait.check()) {
+        rainbowidx = (rainbowidx >= 255) ? 0 : ++rainbowidx;
+        colorAll(Wheel(rainbowidx & 255));
     }
 }
 
@@ -390,6 +428,9 @@ void ledModeLoop()
     case MODE_HANDCLAP:
         handclapLoop();
         break;
+    case MODE_RAINBOW:
+        rainbowLoop();
+        break;
     case MODE_BLINKING:
         ledBlinkLoop();
         break;
@@ -413,7 +454,7 @@ void loop()
         offLed();
     }
     if (digitalRead(SW1PIN) == SWON) {
-        beginHandclap();
+        beginRainbow();
     }
     while (Serial.available()) {
         char letter = Serial.read();
