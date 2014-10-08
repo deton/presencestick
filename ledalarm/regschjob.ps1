@@ -9,5 +9,5 @@ if ($triggers.length -gt 0) {
     $script = $PSScriptRoot + "\led.ps1"
     Register-ScheduledJob -Name LEDAlarm -FilePath "$script" -Trigger $triggers
 }
-Write-Host pause
-[Console]::ReadKey() | Out-Null
+#Write-Host pause
+#[Console]::ReadKey() | Out-Null

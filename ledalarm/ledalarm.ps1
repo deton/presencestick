@@ -1,10 +1,11 @@
-# cf. http://umezy12-techmemo.blogspot.jp/2014/05/powershelloutlook.html
-if($Args[0] -eq $null){#コマンドライン引数が指定が無ければ本日の予定を出力
+# Outlookの今日の予定表を取得して、
+# 予定開始時刻の15分前にカラータイマーを開始するよう、ScheduledJobを登録
+# (cf. http://umezy12-techmemo.blogspot.jp/2014/05/powershelloutlook.html )
+Param([DateTime]$date)
+$enableAlarm = $FALSE
+if ($date -eq $null) { # コマンドライン引数が指定が無ければ本日の予定を出力
   $date = Get-Date
   $enableAlarm = $TRUE
-}else{
-  $date = $Args[0] -as [DateTime]
-  $enableAlarm = $FALSE
 }
 
 $Start = $date.AddDays(-1).ToShortDateString()#当日の10：00以前のものは前日分としてRestrictメソッドで処理されている？ようなので前日を開始時刻に設定
@@ -39,16 +40,16 @@ $folder | Sort-Object Start | foreach{
       $output += "--------------------`r`n"
       $output += $_.Subject,"`r`n"
       $output += $start_h+":"+$start_m+"-"+$end_h+":"+$end_m+"`r`n"
+      $output += $_.Location,"`r`n"
       $alarm_h = $start_h
       $alarm_m = $start_m - 15
       if ($alarm_m -lt 0) {
-          $alarm_m = 60 + $alarm_m
-          $alarm_h = $start_h - 1
+        $alarm_m = 60 + $alarm_m
+        $alarm_h = $start_h - 1
       }
       $alarmhm = [string] $alarm_h + ":" + $alarm_m
       $alarmhms += $alarmhm
-      $output += $_.Location,"`r`n"
-    }
+  }
 } 
 $OutputEncoding = [console]::OutputEncoding;
 $output += "--------------------"
