@@ -1,10 +1,10 @@
-# PresenceLed
+# PresenceStick
 
 自分のプレゼンス情報を周囲に伝えるためのUSB接続LEDです。
 
-[!PresenceLed写真](https://github.com/deton/presenceled/raw/master/PresenceLed.jpg)
+[!PresenceStick写真](https://github.com/deton/presencestick/raw/master/PresenceStick.jpg)
 
-[!内部写真](https://github.com/deton/presenceled/raw/master/PresenceLedInside.jpg)
+[!内部写真](https://github.com/deton/presencestick/raw/master/PresenceStickInside.jpg)
 (単3電池はサイズ比較用)
 
 会議/授業/オフィスにおいて、
