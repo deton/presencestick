@@ -1,7 +1,11 @@
+// https://github.com/adafruit/Adafruit_NeoPixel
 #include <Adafruit_NeoPixel.h>
+// https://github.com/thomasfredericks/Metro-Arduino-Wiring
 #include <Metro.h>
 
 #define LEDPIN 7
+#define SW1PIN 4 // start rainbow mode on switch pressed
+#define SW2PIN 8 // off switch for color timer
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -37,19 +41,14 @@ uint8_t ledState = 0;
 uint32_t currentColor = 0;
 uint32_t now;
 
-// blink LED in a duration after switch pressed
-#define SW1PIN 4
+uint16_t rainbowidx = 0;
+
 const uint32_t HANDCLAPMS = 3000;
 const int SWON = LOW;
 const int SWOFF = HIGH;
 uint32_t handclaptm = 0;
 uint32_t prevColor = 0;
 mode_t prevMode = MODE_NONE;
-
-uint16_t rainbowidx = 0;
-
-// off switch for color timer
-#define SW2PIN 8
 
 // color timer
 uint32_t colortimertm = 0;
@@ -98,12 +97,12 @@ void parseMessage(char letter)
     static uint8_t b;
 
     switch (letter) {
-    case 'n': // set RGB color immediately 'n'r,g,b
+    case 'n': // set RGB color immediately 'n'r,g,b. ex: n255,0,0.
         data = 0;
         r = g = b = 0;
         current_token = PARSER_RED;
         break;
-    case 'i': // blink 'i't
+    case 'i': // blink 'i't. ex: i300.
         data = 0;
         current_token = PARSER_DELAY;
         break;
