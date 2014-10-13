@@ -2,11 +2,6 @@
 
 自分のプレゼンス情報を周囲に伝えるためのUSB接続LEDです。
 
-![PresenceStick写真](https://github.com/deton/presencestick/raw/master/PresenceStick.jpg)
-
-![内部写真](https://github.com/deton/presencestick/raw/master/PresenceStickInside.jpg)
-(単3電池はサイズ比較用)
-
 会議/授業/オフィスにおいて、
 自分の状態/気分を雰囲気として周りの人に伝えるために使うことを想定
 (Augmented Body Language)。
@@ -14,6 +9,8 @@
 例えば、次の予定があるので、
 会議に参加できる残り時間が限られていることをそれとなく伝えたい場合向け。
 (話に割り込むほどでないが、それとなく雰囲気として伝えたい場合)
+
+![PresenceStick写真](https://github.com/deton/presencestick/raw/master/PresenceStick.jpg)
 
 ## 用途
 + 会議に参加できる残り時間が限られていることを、それとなく周りに伝える。
@@ -94,6 +91,9 @@ LED表示とは関係ないですが、9分おきにマウス操作をPCに送�
 
 LEDがまぶしかったので、紙をかぶせました。
 いい感じに拡散されて見やすくなりました(あんどん風)。
+
+![内部写真](https://github.com/deton/presencestick/raw/master/PresenceStickInside.jpg)
+(単3電池はサイズ比較用)
 
 ## 拡張案
 * 今の気分を示す。Don't disturb等
