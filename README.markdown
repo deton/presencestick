@@ -113,6 +113,7 @@ LEDがまぶしかったので、紙をかぶせました。
 
 ## 関連
 * [自動車用しっぽ: サンクステイル](http://www.itmedia.co.jp/lifestyle/articles/0412/15/news033.html)、Drivemocion、LEDメッセンジャー
+* [necomimi](http://neurowear.com/projects_detail/necomimi.html)
 * PCにUSB接続するLED: [blink(1)](http://gigazine.net/news/20140804-blink1-mk2/)、[BlinkStick](http://www.blinkstick.com/)
 * スマホからWiFi-ZigBeeで制御できる照明: [Philips hue](http://trendy.nikkeibp.co.jp/article/column/20140211/1055136/)
 
