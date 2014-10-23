@@ -115,6 +115,7 @@ LEDがまぶしかったので、紙をかぶせました。
 * [自動車用しっぽ: サンクステイル](http://www.itmedia.co.jp/lifestyle/articles/0412/15/news033.html)、Drivemocion、LEDメッセンジャー
 * [necomimi](http://neurowear.com/projects_detail/necomimi.html)
 * PCにUSB接続するLED: [blink(1)](http://gigazine.net/news/20140804-blink1-mk2/)、[BlinkStick](http://www.blinkstick.com/)
+* iPhoneイヤホンジャックに刺すLED: [AYATORI](http://ayatori-dev.vinclu.me/)、[myLED](http://gigazine.net/news/20121225-myled/)
 * スマホからWiFi-ZigBeeで制御できる照明: [Philips hue](http://trendy.nikkeibp.co.jp/article/column/20140211/1055136/)
 
 最初は、blink(1)が欲しかったのですが、その時は在庫無しで買えませんでした。
