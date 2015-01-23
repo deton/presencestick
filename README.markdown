@@ -115,7 +115,9 @@ LEDがまぶしかったので、紙をかぶせました。
 * [会議室残り時間通知LED](https://github.com/deton/presencelamp)
 * [自動車用しっぽ: サンクステイル](http://www.itmedia.co.jp/lifestyle/articles/0412/15/news033.html)、Drivemocion、LEDメッセンジャー
 * [necomimi](http://neurowear.com/projects_detail/necomimi.html)
-* PCにUSB接続するLED: [blink(1)](http://gigazine.net/news/20140804-blink1-mk2/)、[BlinkStick](http://www.blinkstick.com/)、[Luxafor](http://luxafor.com/)
+* PCにUSB接続するLED: [blink(1)](http://gigazine.net/news/20140804-blink1-mk2/)、
+  [BlinkStick](http://www.blinkstick.com/)、
+  [Luxafor](http://internet.watch.impress.co.jp/docs/yajiuma/20150123_684991.html)
 * iPhoneイヤホンジャックに刺すLED: [AYATORI](http://ayatori-dev.vinclu.me/)、[myLED](http://gigazine.net/news/20121225-myled/)
 * スマホからWiFi-ZigBeeで制御できる照明: [Philips hue](http://trendy.nikkeibp.co.jp/article/column/20140211/1055136/)
 
