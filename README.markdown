@@ -49,7 +49,7 @@ ScheduledJobを登録するPowerShellスクリプトです。
   (ScheduledJob登録には管理者権限が必要なのでledalarm.ps1とは別スクリプト。
   確認ダイアログが出る)
 * led.ps1: ScheduledJobにより指定時刻に実行される。
-  USB接続したArduino Pro Microに対しCOMポート経由でカラータイマー開始を指示。
+  USB接続したPro Microに対しCOMポート経由でカラータイマー開始を指示。
 
 ledalarm.ps1を毎朝1回実行して使います。
 
@@ -78,7 +78,7 @@ LED表示とは関係ないですが、9分おきにマウス操作をPCに送�
 (カラータイマーの開始時刻に抜かれていると、カラータイマーが開始されない問題あり)
 
 ## 部品
-+ [Arduino Pro Micro 5V](http://www.switch-science.com/catalog/1623/)
++ [Pro Micro 5V](http://www.switch-science.com/catalog/1623/)(Arduino互換機)
 + [NeoPixelフルカラーLED](http://www.switch-science.com/catalog/1398/)、
   [Arduino用ライブラリ](https://github.com/adafruit/Adafruit_NeoPixel)
 + [プラケース [F52X22X13B]](http://www.aitendo.com/product/5186)
@@ -112,14 +112,15 @@ LEDがまぶしかったので、紙をかぶせました。
   電話が小さい音で鳴り続けてて遠くの人が気付いてない時
 
 ## 関連
+* [会議室残り時間通知LED](https://github.com/deton/presencelamp)
 * [自動車用しっぽ: サンクステイル](http://www.itmedia.co.jp/lifestyle/articles/0412/15/news033.html)、Drivemocion、LEDメッセンジャー
 * [necomimi](http://neurowear.com/projects_detail/necomimi.html)
-* PCにUSB接続するLED: [blink(1)](http://gigazine.net/news/20140804-blink1-mk2/)、[BlinkStick](http://www.blinkstick.com/)
+* PCにUSB接続するLED: [blink(1)](http://gigazine.net/news/20140804-blink1-mk2/)、[BlinkStick](http://www.blinkstick.com/)、[Luxafor](http://luxafor.com/)
 * iPhoneイヤホンジャックに刺すLED: [AYATORI](http://ayatori-dev.vinclu.me/)、[myLED](http://gigazine.net/news/20121225-myled/)
 * スマホからWiFi-ZigBeeで制御できる照明: [Philips hue](http://trendy.nikkeibp.co.jp/article/column/20140211/1055136/)
 
 最初は、blink(1)が欲しかったのですが、その時は在庫無しで買えませんでした。
-回路図はgithubにあるので自作可能ですが面倒になったのでArduino Pro Microで作成。
+回路図はgithubにあるので自作可能ですが面倒になったのでPro Microで作成。
 
 ちなみに、BlinkStickやblink(1)(mk2でない方)の回路図を見ると、
 [Gainer互換pepper](http://morecatlab.akiba.coocan.jp/morecat_lab/Pepper.html)
