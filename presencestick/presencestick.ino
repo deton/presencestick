@@ -3,9 +3,9 @@
 // https://github.com/thomasfredericks/Metro-Arduino-Wiring
 #include <Metro.h>
 
-#define LEDPIN 7
+#define LEDPIN 1
 #define SW1PIN 4 // start rainbow mode on switch pressed
-#define SW2PIN 8 // off switch for color timer
+#define SW2PIN 0 // off switch for color timer
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -14,7 +14,7 @@
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_RGB + NEO_KHZ800);
 
 const uint32_t HANDCLAP_INTERVAL = 300;
 const uint8_t RAINBOW_WAIT = 6;
@@ -317,16 +317,20 @@ void colorTimerLoop(void)
     uint32_t spent = now - colortimertm;
     uint32_t lefttm = COLORTIMERMS_END - spent;
     if (spent >= COLORTIMERMS_END) { // end color timer mode -> keep red on
-        setColor(255, 0, 0);
+        //setColor(255, 0, 0);
+        setColor(20, 0, 0);
         beginReminderWait();
         return;
     } else if (lefttm <= COLORTIMERMS_RED) {
-        oncolor = strip.Color(255, 0, 0);
-        offcolor = strip.Color(255, 255, 0); // yellow
+        //oncolor = strip.Color(255, 0, 0);
+        oncolor = strip.Color(20, 0, 0);
+        //offcolor = strip.Color(255, 255, 0); // yellow
+        offcolor = strip.Color(20, 20, 0);
         oninterval  = lefttm * A2ON  + B2ON;
         offinterval = lefttm * A2OFF + B2OFF;
     } else {
-        oncolor = strip.Color(255, 255, 0); // yellow
+        //oncolor = strip.Color(255, 255, 0); // yellow
+        oncolor = strip.Color(20, 20, 0);
         offcolor = 0;
         oninterval  = lefttm * A1ON  + B1ON;
         offinterval = lefttm * A1OFF + B1OFF;
