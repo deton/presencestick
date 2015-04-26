@@ -10,7 +10,7 @@
 会議に参加できる残り時間が限られていることをそれとなく伝えたい場合向け。
 (話に割り込むほどでないが、それとなく雰囲気として伝えたい場合)
 
-![PresenceStick写真](https://github.com/deton/presencestick/raw/master/PresenceStick.jpg)
+![PresenceStick写真](https://github.com/deton/presencestick/raw/img/PresenceStick.jpg)
 
 ## 用途
 + 会議に参加できる残り時間が限られていることを、それとなく周りに伝える。
@@ -34,9 +34,12 @@
 
 いずれの機能も、COMポートへの文字列書き込みで指定。
 
-## 入力: タクトスイッチ2つ
-* 困ってる表示開始。(元は拍手用スイッチにしていたが、拍手はあまり使わないので。)
-* LED表示オフ。困ってる表示終了、カラータイマー終了。
+## 入力: タクトスイッチ1つ(以上)
+* LED表示オフスイッチ。困ってる表示終了、カラータイマー終了。
+* 困ってる表示開始スイッチ
+* 拍手用スイッチ
+
+困ってる表示や拍手をあまり使わない場合は省略。
 
 ## Outlook連携
 Outlookの今日の予定表を取得して、
@@ -49,7 +52,8 @@ ScheduledJobを登録するPowerShellスクリプトです。
   (ScheduledJob登録には管理者権限が必要なのでledalarm.ps1とは別スクリプト。
   確認ダイアログが出る)
 * led.ps1: ScheduledJobにより指定時刻に実行される。
-  USB接続したPro Microに対しCOMポート経由でカラータイマー開始を指示。
+  USB接続したPro Micro/Pololu A-Star 32U4 Microに対し
+  COMポート経由でカラータイマー開始を指示。
 
 ledalarm.ps1を毎朝1回実行して使います。
 
@@ -67,7 +71,7 @@ Get-ScheduledJobを実行すると修復してくれることがあるようで�
 
 ## その他機能: 画面ロック回避
 LED表示とは関係ないですが、9分おきにマウス操作をPCに送り付ける機能も入れています。
-(Pro Microはキーボード/マウスデバイスとしても見えます。)
+(Pro Micro/Pololu A-Star 32U4 Microはキーボード/マウスデバイスとしても見えます。)
 
 ポリシー上10分でロックをかけることになっているが、
 別PCを使っている間にロックがかかると、
@@ -78,13 +82,25 @@ LED表示とは関係ないですが、9分おきにマウス操作をPCに送�
 (カラータイマーの開始時刻に抜かれていると、カラータイマーが開始されない問題あり)
 
 ## 部品
-+ [Pro Micro 5V](http://www.switch-science.com/catalog/1623/)(Arduino互換機)
-+ [NeoPixelフルカラーLED](http://www.switch-science.com/catalog/1398/)、
-  [Arduino用ライブラリ](https://github.com/adafruit/Adafruit_NeoPixel)
++ [Pololu A-Star 32U4 Micro](https://www.switch-science.com/catalog/1748/)(Arduino互換機)。
+  または、[Pro Micro 5V](http://www.switch-science.com/catalog/1623/)(Arduino互換機)。
++ [NeoPixel RGB Module 8mm 基板付き](http://www.akiba-led.jp/product/963)。
+  または、[NeoPixelフルカラーLED](http://www.switch-science.com/catalog/1398/)。
+ + [Arduino用ライブラリ](https://github.com/adafruit/Adafruit_NeoPixel)
 + [プラケース [F52X22X13B]](http://www.aitendo.com/product/5186)
 + タクトスイッチ(2本足) 2個
 + (USB microケーブル。あきばお～で購入)
 
+### Pololu A-Star 32U4 Micro版
+Pro MicroのかわりにPololu A-Star 32U4 Microを使った版。
+
+Pro Micro版は、PCにUSBを刺したままケースを空けようとして、
+microUSBコネクタをはがして2台目も駄目にしました。
+(Pro MicroのmicroUSBコネクタは剥がしやすいのかも。)
+
+![A-Star 32U4 Micro版内部写真](https://github.com/deton/presencestick/raw/img/PresenceStick2Inside.jpg)
+
+### Pro Micro版
 プラケースはPro Microにちょうどいいサイズなのですが、
 ピンヘッダを付けると蓋が閉まらなくなるので、
 タクトスイッチ等は直接はんだ付けしてます。
@@ -92,7 +108,7 @@ LED表示とは関係ないですが、9分おきにマウス操作をPCに送�
 LEDがまぶしかったので、紙をかぶせました。
 いい感じに拡散されて見やすくなりました(あんどん風)。
 
-![内部写真](https://github.com/deton/presencestick/raw/master/PresenceStickInside.jpg)
+![内部写真](https://github.com/deton/presencestick/raw/img/PresenceStickInside.jpg)
 (単3電池はサイズ比較用)
 
 ## 拡張案
